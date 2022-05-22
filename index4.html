@@ -28,18 +28,15 @@
 </script>
 <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=6f91ca85685f7e74b9409f8cc6307741"></script>
 <script type="text/javascript">
-    //获取用户所在城市信息
-    function showCityInfo() {
-        //实例化城市查询类
-        var citysearch = new AMap.CitySearch();
-        //自动获取用户IP，返回当前城市
-        citysearch.getLocalCity(function(status, result) {
-            if (status === 'complete' && result.info === 'OK') {
-                alert("city result: "+JSON.stringify(result))
-            }
-        });
-    }
-    showCityInfo();
+    AMap.plugin('AMap.CitySearch', function () {
+      var citySearch = new AMap.CitySearch()
+      citySearch.getLocalCity(function (status, result) {
+        if (status === 'complete' && result.info === 'OK') {
+          // 查询成功，result即为当前所在城市信息
+            alert("city result: "+JSON.stringify(result))
+        }
+      })
+    })
 </script>
 </body>
 </html>
