@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>indexcom2</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+
+<body>
+    <script src="./vconsole.js"></script>
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode: '674e2d1fb41b3f0adde9b27c1ebc19f4',
+        }
+    </script>
+    <script type="text/javascript"
+        src="https://webapi.amap.com/maps?v=2.0&key=6f91ca85685f7e74b9409f8cc6307741"></script>
+    <script type="text/javascript">
+        /**
+ * 高德地图公共方法
+ **/
+        var AMapUtil = {
+            /**
+             * 获取定位信息
+             * @param {*} sucCb 回调方法数据有三个参数
+             * 第1个参数 position：
+             *     { 
+             *         lng: 0, // 经度 
+             *         lat: 0 // 纬度
+             *     }
+             * 第2个参数 city：当前城市名称
+             * 第3个参数 accurate 精确度 1：精确定位；0：非精确定位
+             * 第4个参数 province: 当前省份名称
+             * @param {*} failCb 
+             */
+            getCurrentPosition: function (sucCb, failCb) {
+                if (AMap) {
+                    AMap.plugin('AMap.Geolocation', function () {
+                        var _position,
+                            _city = '',
+                            _province = '';
+                        // 定位插件，整合了浏览器定位、精确IP定位、sdk辅助定位多种手段
+                        var geolocation = new AMap.Geolocation({
+                            enableHighAccuracy: true,//是否使用高精度定位，默认:true
+                            timeout: 5000,          //超过10秒后停止定位，默认：5s
+                            buttonPosition: 'RB',    //定位按钮的停靠位置
+                            buttonOffset: new AMap.Pixel(10, 20),//定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+                            zoomToAccuracy: true,   //定位成功后是否自动调整地图视野到定位点
+                            useNative: true, // 是否使用安卓定位sdk用来进行定位，默认：false
+                        });
+                        // 获取用户当前的精确位置信息
+                        geolocation.getCurrentPosition(function (status, result) {
+                            console.log("geolocation.getCurrentPosition)")
+                            console.log(result)
+                            if (status == 'complete') {
+                                if (Object.prototype.toString.call(result.position) === '[object Object]'){ // true 代表为对象
+                                    _position = {
+                                        lng: result.position.lng, // 经度
+                                        lat: result.position.lat // 纬度
+                                    };
+                                } else if (Object.prototype.toString.call(result.position) === '[object Array]') { // true 代表为数组)
+                                    _position = {
+                                        lng: result.position[0], // 经度
+                                        lat: result.position[1] // 纬度
+                                    };
+                                }
+                                // 进行IP城市查询(获取省份名称、城市名称)
+                                geolocation.getCityInfo(function (status, result) {
+                                    console.log("geolocation.getCityInfo)")
+                                    console.log(result)
+                                    if (status == 'complete') {
+                                        if (result && result.city) {
+                                            _city = result.city;
+                                        }
+                                        if (result && result.province) {
+                                            _province = result.province;
+                                        }
+                                    }
+                                    if (typeof sucCb == 'function') {
+                                        sucCb(_position, _city, '1', _province)
+                                    }
+                                });
+                            } else {
+                                // 进行IP城市查询(获取省份名称、城市名称、城市中心点位置)
+                                geolocation.getCityInfo(function (status, result) {
+                                    console.log("geolocation.getCityInfo)")
+                                    console.log(result)
+                                    if (status == 'complete') {
+                                        _position = {
+                                            lng: result.position[0], // 经度
+                                            lat: result.position[1] // 纬度
+                                        };
+                                        if (result && result.city) {
+                                            _city = result.city;
+                                        }
+                                        if (result && result.province) {
+                                            _province = result.province;
+                                        }
+                                        if (typeof sucCb == 'function') {
+                                            sucCb(_position, _city, '0', _province)
+                                        }
+                                    } else {
+                                        // 城市查询，IP定位获取当前城市信息
+                                        AMap.plugin('AMap.CitySearch', function () {
+                                            var citySearch = new AMap.CitySearch();
+                                            // 城市查询，IP定位获取当前城市信息
+                                            citySearch.getLocalCity(function (status, result) {
+                                                console.log("citySearch.getLocalCity)")
+                                                console.log(result)
+                                                if (status === 'complete' && result.info === 'OK') {
+                                                    // 查询成功，result即为当前所在城市信息
+                                                    var northEast = '';
+                                                    var southWest = '';
+                                                    if (result.rectangle) {
+                                                        var arr = result.rectangle.split(";");
+                                                        if (arr && arr.length >= 2) {
+                                                            southWest = arr[0].split(",");
+                                                            northEast = arr[1].split(",");
+                                                        }
+                                                    }
+                                                    if (northEast && southWest) {
+                                                        var mybounds = new AMap.Bounds(southWest, northEast);
+                                                        // 由于此方法不返回具体位置信息，获取边界范围中心点位置
+                                                        var centerPosition = mybounds.getCenter();
+                                                        _position = {
+                                                            lng: centerPosition.lng, // 经度
+                                                            lat: centerPosition.lat // 纬度
+                                                        };
+                                                        if (result.city) {
+                                                            _city = result.city
+                                                        }
+                                                        if (result.province) {
+                                                            _province = result.province
+                                                        }
+                                                        if (typeof sucCb == 'function') {
+                                                            sucCb(_position, _city, '0', _province);
+                                                        }
+                                                    }
+                                                } else {
+                                                    if (typeof failCb == 'function') {
+                                                        failCb();
+                                                    }
+                                                }
+                                            })
+                                        })
+                                    }
+                                });
+                            }
+                        });
+                    });
+                } else {
+                    if (typeof failCb == 'function') {
+                        failCb();
+                    }
+                }
+            }
+        }
+
+        AMapUtil.getCurrentPosition(function (position, city, accurate, province) {
+            alert("position: "+JSON.stringify(position) + "; city: "+city+"; accurate: "+accurate+"; province: "+province)
+        }, function () {
+            alert("定位失败，请刷新页面重试！");
+        });
+    </script>
+</body>
+
+</html>
