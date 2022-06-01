@@ -55,8 +55,8 @@
                             console.log(result)
                             if (status == 'complete') {
                                 _position = {
-                                    lng: result.position[0], // 经度
-                                    lat: result.position[1] // 纬度
+                                    lng: result.position.pos[0], // 经度
+                                    lat: result.position.pos[1] // 纬度
                                 };
                                 // 进行IP城市查询(获取省份名称、城市名称)
                                 geolocation.getCityInfo(function (status, result) {
@@ -145,7 +145,7 @@
         }
 
         AMapUtil.getCurrentPosition(function (position, city, accurate, province) {
-            //alert("position: "+JSON.stringify(position) + "; city: "+city+"; accurate: "+accurate+"; province: "+province)
+            alert("position: "+JSON.stringify(position) + "; city: "+city+"; accurate: "+accurate+"; province: "+province)
         }, function () {
             alert("定位失败，请刷新页面重试！");
         });
