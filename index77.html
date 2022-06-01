@@ -18,6 +18,12 @@
     <script type="text/javascript"
         src="https://webapi.amap.com/maps?v=2.0&key=6f91ca85685f7e74b9409f8cc6307741"></script>
     <script type="text/javascript">
+        function getParam(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return decodeURI(r[2]); return null;
+        }
+        var accurate = getParam("accurate");
         /**
  * 高德地图公共方法
  **/
@@ -54,7 +60,7 @@
                         geolocation.getCurrentPosition(function (status, result) {
                             console.log("geolocation.getCurrentPosition)")
                             console.log(result)
-                            if (status == 'complete') {
+                            if (status == 'complete' && accurate && accurate == 1) {
                                 if (Object.prototype.toString.call(result.position) === '[object Object]'){ // true 代表为对象
                                     _position = {
                                         lng: result.position.lng, // 经度
@@ -87,7 +93,7 @@
                                 geolocation.getCityInfo(function (status, result) {
                                     console.log("geolocation.getCityInfo)")
                                     console.log(result)
-                                    if (status == 'complete') {
+                                    if (status == 'complete' && accurate && accurate == 2) {
                                         _position = {
                                             lng: result.position[0], // 经度
                                             lat: result.position[1] // 纬度
