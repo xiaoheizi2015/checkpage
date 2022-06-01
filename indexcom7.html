@@ -54,10 +54,17 @@
                         geolocation.getCurrentPosition(function (status, result) {
                             console.log(result)
                             if (status == 'complete') {
-                                _position = {
-                                    lng: result.position.lng, // 经度
-                                    lat: result.position.lat // 纬度
-                                };
+                                if (Object.prototype.toString.call(result.position) === '[object Object]'){ // true 代表为对象
+                                    _position = {
+                                        lng: result.position.lng, // 经度
+                                        lat: result.position.lat // 纬度
+                                    };
+                                } else if (Object.prototype.toString.call(result.position) === '[object Array]') { // true 代表为数组)
+                                    _position = {
+                                        lng: result.position[0], // 经度
+                                        lat: result.position[1] // 纬度
+                                    };
+                                }
                                 // 进行IP城市查询(获取省份名称、城市名称)
                                 geolocation.getCityInfo(function (status, result) {
                                     if (status == 'complete') {
